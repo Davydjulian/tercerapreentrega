@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Frutas Online</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                text-align: center;
+            }
+    
+            h1 {
+                color: #333;
+            }
+    
+            #frutas-lista {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+    
+            .fruta {
+                border: 1px solid #ccc;
+                margin: 10px;
+                padding: 10px;
+                width: 150px;
+                text-align: center;
+            }
+    
+            button {
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 10px;
+                cursor: pointer;
+                border: none;
+                border-radius: 5px;
+            }
+    
+            button:hover {
+                background-color: #45a049;
+            }
+    
+            #carrito-notificacion {
+                margin-top: 20px;
+                font-weight: bold;
+            }
+    
+            #resumen-compra {
+                margin-top: 20px;
+                border: 1px solid #ccc;
+                padding: 10px;
+                text-align: left;
+            }
+    
+            #datos-comprador {
+                margin-top: 20px;
+                display: none;
+            }
+    
+            input {
+                padding: 8px;
+                margin: 5px;
+            }
+    
+            #btn-finalizar {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+    
+    <h1>Frutas Online</h1>
+    
+    <div id="frutas-lista"></div>
+    <div id="carrito-notificacion"></div>
+    <button id="ver-carrito">Ver Carrito</button>
+    <div id="resumen-compra"></div>
+    <div id="datos-comprador">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" placeholder="Ingrese su nombre">
+        <br>
+        <label for="telefono">Teléfono:</label>
+        <input type="tel" id="telefono" placeholder="Ingrese su teléfono">
+        <br>
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion" placeholder="Ingrese su dirección">
+        <br>
+        <button id="btn-finalizar">Finalizar Compra</button>
+    </div>
+    
+    <script>
+    let frutasConPrecios = {
+        "Manzana": 3000,
+        "Banana": 1500,
+        "Naranja": 2000,
+        "Fresa": 5000,
+        "Pera": 2500,
+        "Kiwi": 3500,
+        "Uva": 6000,
+        "Mango": 4500,
+        "Cereza": 8000,
+        "Piña": 7000
+    };
+    
+    let carritoDeCompras = obtenerDeStorage('carrito') || [];
+    
+    let frutasLista = document.getElementById("frutas-lista");
+    let carritoNotificacion = document.getElementById("carrito-notificacion");
+    let btnVerCarrito = document.getElementById("ver-carrito");
+    let datosComprador = document.getElementById("datos-comprador");
+    let btnFinalizarCompra = document.getElementById("btn-finalizar");
+    let resumenCompra = document.getElementById("resumen-compra");
+    
+    for (let fruta in frutasConPrecios) {
+        let elementoFruta = document.createElement("div");
+        elementoFruta.className = "fruta";
+        elementoFruta.innerHTML = `<strong>${fruta}</strong><br>Precio: $${frutasConPrecios[fruta].toLocaleString()} COP<br><button data-fruta="${fruta}">Agregar al Carrito</button>`;
+        frutasLista.appendChild(elementoFruta);
+    }
+    
+    mostrarNotificacionCarrito();
+    
+    frutasLista.addEventListener("click", function(event) {
+        let botonCarrito = event.target.closest("button[data-fruta]");
+        if (botonCarrito) {
+            let fruta = botonCarrito.getAttribute("data-fruta");
+            agregarAlCarrito(fruta);
+        }
+    });
+    
+    btnVerCarrito.addEventListener("click", function() {
+        datosComprador.style.display = "block";
+        btnFinalizarCompra.style.display = "block";
+    });
+    
+    btnFinalizarCompra.addEventListener("click", finalizarCompra);
+    
+    function agregarAlCarrito(fruta) {
+        carritoDeCompras.push(fruta);
+        guardarEnStorage('carrito', carritoDeCompras);
+        mostrarNotificacionCarrito();
+    }
+    
+    function finalizarCompra() {
+        let nombre = document.getElementById("nombre").value || "Nombre no especificado";
+        let telefono = document.getElementById("telefono").value || "Teléfono no especificado";
+        let direccion = document.getElementById("direccion").value || "Dirección no especificada";
+    
+        let mensaje = `¡Felicitaciones! Tu compra será enviada a:\nNombre: ${nombre}\nTeléfono: ${telefono}\nDirección: ${direccion}`;
+        alert(mensaje);
+    
+        mostrarNotificacionCompra();
+    
+        carritoDeCompras = [];
+        guardarEnStorage('carrito', carritoDeCompras);
+    
+        mostrarNotificacionCarrito();
+    }
+    
+    function mostrarNotificacionCarrito() {
+        carritoNotificacion.innerHTML = `Carrito: ${carritoDeCompras.length} frutas`;
+    }
+    
+    function mostrarNotificacionCompra() {
+        let resumenHTML = "<h2>Resumen de la Compra</h2>";
+        let totalCompra = 0;
+    
+        carritoDeCompras.forEach(fruta => {
+            let precio = frutasConPrecios[fruta];
+            resumenHTML += `<p>${fruta} - $${precio.toLocaleString()} COP</p>`;
+            totalCompra += precio;
+        });
+    
+        resumenHTML += `<p>Total: $${totalCompra.toLocaleString()} COP</p>`;
+    
+        let nombre = document.getElementById("nombre").value || "Nombre no especificado";
+        let telefono = document.getElementById("telefono").value || "Teléfono no especificado";
+        let direccion = document.getElementById("direccion").value || "Dirección no especificada";
+    
+        resumenHTML += `<h3>Datos del Comprador:</h3>`;
+        resumenHTML += `<p>Nombre: ${nombre}</p>`;
+        resumenHTML += `<p>Teléfono: ${telefono}</p>`;
+        resumenHTML += `<p>Dirección: ${direccion}</p>`;
+    
+        resumenCompra.innerHTML = resumenHTML;
+    }
+    
+    function guardarEnStorage(clave, valor) {
+        localStorage.setItem(clave, JSON.stringify(valor));
+    }
+    
+    function obtenerDeStorage(clave) {
+        let valor = localStorage.getItem(clave);
+        return valor ? JSON.parse(valor) : null;
+    }
+    </script>
+    
+    </body>
+</html>
